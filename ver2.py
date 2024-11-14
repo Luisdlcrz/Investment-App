@@ -309,7 +309,7 @@ if st.session_state.page == "page_2":
             if operating_cashflow is None or capital_expenditures is None or dividends_paid is None:
                 free_cash_flow_ratio = "Required data is missing."
             else:
-            free_cash_flow = operating_cashflow - capital_expenditures
+                free_cash_flow = operating_cashflow - capital_expenditures
 
             if free_cash_flow == 0:
                 free_cash_flow_ratio = "Free Cash Flow is zero, cannot calculate payout ratio."
