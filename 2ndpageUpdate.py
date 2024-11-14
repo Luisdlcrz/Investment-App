@@ -395,7 +395,7 @@ if st.session_state.page == "page_2":
             if len(dividends) > 12:
                 dividend_payout = "has a history of paying dividends."
             else:
-                dividend_payout = "none"
+                dividend_payout = "none/not consistent"
 
             # Evaluate Dividend Yield
             industry_avg_yield = 2.5 # Industry average yield for comparison!!!
