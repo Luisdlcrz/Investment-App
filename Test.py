@@ -258,32 +258,198 @@ if st.session_state.page == "page_2":
             income_statement = stock.financials
 
             # Debt-to-Equity Ratio
-            debt_to_equity = balance_sheet.loc['Total Liabilities Net Minority Interest'].iloc[0] / balance_sheet.loc['Stockholders Equity'].iloc[0]
+            debt_to_equity = stock.info.get('debtToEquity', None)
 
             # Revenue Growth
             revenue_growth = ((income_statement.loc['Total Revenue'].iloc[0] - income_statement.loc['Total Revenue'].iloc[1]) /
                               income_statement.loc['Total Revenue'].iloc[1]) * 100
 
             # Return on Equity (ROE)
-            roe = (income_statement.loc['Net Income'].iloc[0] / balance_sheet.loc['Stockholders Equity'].iloc[0]) * 100
+            roe = stock.info.get('returnOnEquity', None)
 
-            return {"Debt-to-Equity": debt_to_equity, "Revenue Growth": revenue_growth, "ROE": roe}
+            # Dividend Payout Ratio
+            dividend_payout_ratio = stock.info.get("payoutRatio", None)
+
+            # Dividend Yield
+            dividends_per_share = stock.info.get('dividendRate', 0)  # Get dividends per share
+            dividend_yield = (dividends_per_share / stock.info['previousClose']) * 100
+
+            # Beta
+            beta = stock.info.get('beta', None)
+
+            return {"Debt-to-Equity": debt_to_equity, "Revenue Growth": revenue_growth, "ROE": roe, "Dividend-Payout Ratio": dividend_payout_ratio, "Dividend Yield": dividend_yield,  "Beta": beta}
+
+        def evaluate_metrics(symbol):
+            stock = yf.Ticker(symbol)
+            balance_sheet = stock.balance_sheet
+            income_statement = stock.financials
+
+            # Debt-to-Equity Ratio
+            debt_to_equity = stock.info.get('debtToEquity', None)
+
+            # Revenue Growth
+            revenue_growth = ((income_statement.loc['Total Revenue'].iloc[0] - income_statement.loc['Total Revenue'].iloc[1]) /
+                                  income_statement.loc['Total Revenue'].iloc[1]) * 100
+
+            # Return on Equity (ROE)
+            roe = stock.info.get('returnOnEquity', None)
+
+            # Dividend Payout Ratio
+            dividend_payout_ratio = stock.info.get("payoutRatio", None)
+
+            # Dividend Yield
+            dividends_per_share = stock.info.get('dividendRate', 0)  # Get dividends per share
+            dividend_yield = (dividends_per_share / stock.info['previousClose']) * 100
+
+            # Beta
+            beta = stock.info.get('beta', None)
+
+            # Evaluate Debt-to-Equity Ratio
+            if debt_to_equity is not None:
+              try:
+                debt_to_equity = float(debt_to_equity)
+                if debt_to_equity < 1:
+                    debt_to_equity_rating = "Low (Good)"
+                elif debt_to_equity < 2:
+                    debt_to_equity_rating = "Moderate"
+                else:
+                    debt_to_equity_rating = "High (Risky)"
+              except (TypeError, ValueError):
+                debt_to_equity_rating = "N/A"
+            else:
+                debt_to_equity_rating = "N/A"
+
+            # Evaluate Revenue Growth
+            if revenue_growth is not None: 
+              try: 
+                revenue_growth = float(revenue_growth)
+                if revenue_growth >= 5:
+                    revenue_growth_rating = "Consistent Growth"
+                elif revenue_growth > 0:
+                    revenue_growth_rating = "Positive but Low Growth"
+                else:
+                    revenue_growth_rating = "Declining Revenue"
+              except (TypeError, ValueError):
+                revenue_growth_rating = "N/A"
+            else:
+                revenue_growth_rating = "N/A"      
+
+            # Evaluate ROE
+            if roe is not None:
+              try:
+                roe = float(roe)
+                if roe >= 20:
+                    roe_rating = "Very High (Excellent)"
+                elif roe >= 15:
+                    roe_rating = "High (Good)"
+                else:
+                    roe_rating = "Low"
+              except (TypeError, ValueError):
+                roe_rating = "N/A"
+            else:
+                roe_rating = "N/A"
+
+            # Evaluate Payout Ratio
+            if dividend_payout_ratio is not None:
+              try:
+                dividend_payout_ratio = float(dividend_payout_ratio)
+                if dividend_payout_ratio < 60:
+                    dividend_payout_ratio_rating = "Healthy."
+                elif dividend_payout_ratio <= 75:
+                    dividend_payout_ratio_rating = "Moderate."
+                else:
+                    dividend_payout_ratio = "Risky."
+              except (TypeError, ValueError):
+                dividend_payout_ratio_rating = "N/A"
+            else:
+                dividend_payout_ratio_rating = "N/A"
+
+            # Dividend History (Checking last few years)
+            dividends = stock.dividends
+            if len(dividends) > 12:
+                dividend_payout = "has a history of paying dividends."
+            else:
+                dividend_payout = "none/not consistent"
+
+            # Evaluate Dividend Yield
+            industry_avg_yield = 2.5 # Industry average yield for comparison!!!
+            if dividend_yield is not None:
+              if dividend_yield < industry_avg_yield:
+                  yield_rating = "Low"
+              elif dividend_yield <= industry_avg_yield * 1.5:
+                  yield_rating = "Healthy"
+              else:
+                  yield_rating = "High (Potential Risk)"
+            else:
+                yield_rating = "N/A"
+
+            # Evaluate Beta
+            if beta is not None:
+              try:
+                beta = float(beta)
+                if beta < 0:
+                    beta_rating = "This stock has a negative beta, meaning it tends to move inversely to the market. It may provide a hedge against market downturns."
+                elif beta < 1:
+                    beta_rating = "This stock has a low beta, meaning it is less volatile than the market. It may be suitable for conservative investors looking for stability."
+                elif beta <= 1.5:
+                    beta_rating = "This stock has a moderate beta, meaning it tends to move in line with the market. It has average market risk."
+                else:
+                    beta_rating = "This stock has a high beta, meaning it is more volatile than the market. It may appeal to aggressive investors willing to take on more risk for potentially higher returns."
+              except (TypeError, ValueError):
+                beta_rating = "N/A"
+            else:
+              beta_rating = "N/A"
+
+            return {
+                "Debt-to-Equity": debt_to_equity_rating,
+                "Revenue Growth": revenue_growth_rating,
+                "ROE": roe_rating,
+                "Dividend History": dividend_payout,
+                "Dividend-Payout Ratio": dividend_payout_ratio_rating,
+                "Dividend Yield": yield_rating,
+                "Beta": beta_rating
+                }
 
         # Display metrics for each company
         metrics1 = get_financial_metrics(company1)
+        metrics12= evaluate_metrics(company1)
         metrics2 = get_financial_metrics(company2)
+        metrics22= evaluate_metrics(company2)
 
         col1, col2 = st.columns(2)
 
         with col1:
             st.subheader(f"Metrics for {company1}")
             for metric, value in metrics1.items():
-                st.write(f"**{metric}:** {value:.2f}")
+                if value is not None: 
+                  st.write(f"**{metric}:** {value}")
+                else:
+                  st.write(f"**{metric}:** N/A")
+
+        with col1:
+            st.subheader(f"Rating for {company1}")
+            for metric, value in metrics12.items():
+                if value is not None: 
+                  st.write(f"**{metric}:** {value}")
+                else:
+                  st.write(f"**{metric}:** N/A")
 
         with col2:
             st.subheader(f"Metrics for {company2}")
             for metric, value in metrics2.items():
-                st.write(f"**{metric}:** {value:.2f}")
+                if value is not None: 
+                  st.write(f"**{metric}:** {value}")
+                else:
+                  st.write(f"**{metric}:** N/A")
+
+
+        with col2:
+            st.subheader(f"Rating for {company2}")
+            for metric, value in metrics22.items():
+                if value is not None: 
+                  st.write(f"**{metric}:** {value}")
+                else:
+                  st.write(f"**{metric}:** N/A")
 
         # Plot Golden/Death Cross
         def plot_golden_death_cross(symbol):
@@ -293,13 +459,14 @@ if st.session_state.page == "page_2":
 
             plt.figure(figsize=(12, 6))
             plt.plot(data, label="Price")
-            plt.plot(short_ma, label="50-day MA (Golden Cross)", linestyle="--")
-            plt.plot(long_ma, label="200-day MA (Death Cross)", linestyle="--")
+            plt.plot(short_ma, label="50-day MA", linestyle="--")
+            plt.plot(long_ma, label="200-day MA", linestyle="--")
             plt.legend()
             plt.title(f"Golden/Death Cross for {symbol}")
             st.pyplot(plt)
 
-        st.write("**Golden/Death Cross for Selected Stocks**")
+        st.subheader("**Golden/Death Cross for Selected Stocks**")
+        st.write("The golden cross & death cross are two technical indicators that help signal potential trends on stock prices, based on the movement of two moving averages. Golden Cross: This occurs when a short-term moving average (50-day moving average) crosses above a long-term moving average (200-day) moving average). The golden cross generally is viewed as a bullish signal, suggesting that the stocks momentum is shifting upward and that a potential uptrend may be beginning. Time to buy! Death Cross: This is the opposite scenario, where the short-term moving average crosses below the long-term moving average. The death cross is considered a bearish signal, indicating that downward momentum may continue & that the stock could be entering a downtrend. Sell before it is too late!")
         plot_golden_death_cross(company1)
         plot_golden_death_cross(company2)
 
@@ -324,9 +491,6 @@ if st.session_state.page == "page_2":
     if st.button("Next", on_click=go_to_final_page, key="final_page"):
         pass
 
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%% #
-### FINAL PAGE: PORTFOLIO BUILDER ###
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 ### FINAL PAGE: PORTFOLIO BUILDER ###
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%% #
