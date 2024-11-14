@@ -427,7 +427,7 @@ if st.session_state.page == "page_2":
                 beta_rating = "This stock has a low beta, meaning it is less volatile than the market. It may be suitable for conservative investors looking for stability."
             elif beta == 1:
                 beta_rating = "This stock has a beta of 1, meaning it tends to move in line with the market. It has average market risk."
-            else
+            else:
                 beta_rating = "This stock has a high beta, meaning it is more volatile than the market. It may appeal to aggressive investors willing to take on more risk for potentially higher returns."
 
             return {
