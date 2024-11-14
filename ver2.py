@@ -308,7 +308,7 @@ if st.session_state.page == "page_2":
             dividends_paid = stock.info.get("dividendsPaid")
             if operating_cashflow is None or capital_expenditures is None or dividends_paid is None:
                 free_cash_flow_ratio = "Required data is missing."
-
+            else:
             free_cash_flow = operating_cashflow - capital_expenditures
 
             if free_cash_flow == 0:
@@ -349,7 +349,7 @@ if st.session_state.page == "page_2":
             dividends_paid = stock.info.get("dividendsPaid")
             if operating_cashflow is None or capital_expenditures is None or dividends_paid is None:
                 free_cash_flow_ratio = "Required data is missing."
-
+            else:
             free_cash_flow = operating_cashflow - capital_expenditures
 
             if free_cash_flow == 0:
