@@ -1,0 +1,9 @@
+streamlit
+matplotlib
+datetime
+appdirs
+yfinance
+plotly
+pandas 
+scipy
+riskfolio-lib
