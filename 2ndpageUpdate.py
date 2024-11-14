@@ -264,6 +264,12 @@ if st.session_state.page == "quiz":
         if st.button("Next", on_click=go_to_page_2, key="page_2"):
             pass
 
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
+### PAGE 2: Company Financial Comparison & Golden/Death Cross Visualization ###
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
+
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 ### PAGE 2: COMPARING STOCKS & GOLDEN/DEATH CROSS ###
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%% #
@@ -468,6 +474,7 @@ if st.session_state.page == "page_2":
                 else:
                   st.write(f"**{metric}:** N/A")
 
+
         with col2:
             st.subheader(f"Rating for {company2}")
             for metric, value in metrics22.items():
@@ -484,13 +491,15 @@ if st.session_state.page == "page_2":
 
             plt.figure(figsize=(12, 6))
             plt.plot(data, label="Price")
-            plt.plot(short_ma, label="50-day MA (Golden Cross)", linestyle="--")
-            plt.plot(long_ma, label="200-day MA (Death Cross)", linestyle="--")
+            plt.plot(short_ma, label="50-day MA", linestyle="--")
+            plt.plot(long_ma, label="200-day MA", linestyle="--")
             plt.legend()
             plt.title(f"Golden/Death Cross for {symbol}")
             st.pyplot(plt)
 
-        st.write("**Golden/Death Cross for Selected Stocks**")
+        st.subheader("**Golden/Death Cross for Selected Stocks**")
+        st.write( f'The golden cross & death cross are two technical indicators that help signal potential trends on stock prices, based on the movement of two moving averages. Golden Cross: This occurs when a short-term moving average (50-day moving average) crosses above a long-term moving average (200-day) moving average). The golden cross generally is viewed as a bullish signal, suggesting that the stocks momentum is shifting upward and that a potential uptrend may be beginning. Time to buy! Death Cross: This is the opposite scenario, where the short-term moving average crosses below the long-term moving average. The death cross is considered a bearish signal, indicating that downward momentum may continue & that the stock could be entering a downtrend. Sell before it is too late!')
+        
         plot_golden_death_cross(company1)
         plot_golden_death_cross(company2)
 
@@ -514,6 +523,7 @@ if st.session_state.page == "page_2":
 
     if st.button("Next", on_click=go_to_final_page, key="final_page"):
         pass
+
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 ### FINAL PAGE: PORTFOLIO BUILDER ###
@@ -614,6 +624,5 @@ if st.session_state.page == "final_page":
         else:
             st.warning("Please ensure you have selected stocks and allocated investments.")
 
-    else:
-        st.warning("Please complete the Risk Tolerance Quiz first to get stock suggestions.")
+
 
