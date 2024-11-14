@@ -171,12 +171,6 @@ if st.session_state.page == "quiz":
             st.session_state[key] = None # Initialize with None
         user_answers[question] = st.radio("Select your answer:", data["options"], key=key, index=None)
 
-    # Display questions and get user input
-    for question, data in questions.items():
-        st.subheader(question)
-        user_answers[question] = st.radio("Select your answer:", data["options"], key=question)
-
-
     # "Submit" button with st.button()
     submit_button = st.markdown(
         """
@@ -521,101 +515,72 @@ if st.session_state.page == "page_2":
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 ### FINAL PAGE: PORTFOLIO BUILDER ###
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%% #
-
-# Portfolio Optimization function (Mean-Variance Optimization)
-def optimize_portfolio(returns, risk_free_rate=0.0):
-    # Objective function: Minimize portfolio variance (risk)
-    def objective(weights):
-        return np.dot(weights.T, np.dot(returns.cov(), weights))
-
-    # Constraints: Weights must sum to 1 (fully invested)
-    def constraint(weights):
-        return np.sum(weights) - 1
-
-    # Bounds for each weight: between 0 and 1
-    bounds = [(0, 1) for _ in range(len(returns.columns))]
-
-    # Initial guess (equal distribution)
-    initial_guess = [1. / len(returns.columns)] * len(returns.columns)
-
-    # Solve the optimization problem
-    result = minimize(objective, initial_guess, method='SLSQP', bounds=bounds, constraints={'type': 'eq', 'fun': constraint})
-
-    return result.x  # Optimal weights
-
-
-# Portfolio Builder page content
 if st.session_state.page == "final_page":
     st.title("Portfolio Builder")
 
     # Investment amount input
-    investment_amount = st.number_input("Enter total investment amount:", min_value=0.0, step=1000.0)
+    #investment_amount = st.number_input("Enter total investment amount:", min_value=0.0, step=1000.0)
 
-    # Risk Tolerance-Based Stock Selection
-    if "risk_tolerance_level" in st.session_state:
+    # Ensure the risk tolerance level from the quiz is stored in the session state
+    if "risk_tolerance_level" not in st.session_state:
+        st.warning("Please complete the Risk Tolerance Quiz first to get stock suggestions.")
+    else:
         risk_tolerance = st.session_state.risk_tolerance_level
+
+        # Stock recommendations based on risk tolerance
         if risk_tolerance == "Low risk tolerance (i.e., conservative investor)":
-            stock_options = ["VTI", "BND", "AGG", "XLP", "VZ"]
+            stock_options = ["VTI", "BND", "AGG", "XLP", "VZ"]  # Examples of low-risk stocks (broad market, bonds)
             st.write("Based on your low risk tolerance, we recommend considering the following stocks:")
         elif risk_tolerance == "Below-average risk tolerance":
-            stock_options = ["VUG", "VO", "VEA", "KO", "PG"]
+            stock_options = ["VUG", "VO", "VEA", "KO", "PG"]  # Examples of below-average risk stocks (growth, value)
             st.write("Based on your below-average risk tolerance, we recommend considering the following stocks:")
         elif risk_tolerance == "Average/moderate risk tolerance":
-            stock_options = ["QQQ", "SPY", "IVV", "MSFT", "JNJ"]
+            stock_options = ["QQQ", "SPY", "IVV", "MSFT", "JNJ"]  # Examples of moderate risk stocks (tech, S&P 500)
             st.write("Based on your average risk tolerance, we recommend considering the following stocks:")
         elif risk_tolerance == "Above-average risk tolerance":
-            stock_options = ["ARKK", "TQQQ", "XLK", "TSLA", "NVDA"]
+            stock_options = ["ARKK", "TQQQ", "XLK", "TSLA", "NVDA"]  # Examples of above-average risk stocks (innovation, tech)
             st.write("Based on your above-average risk tolerance, we recommend considering the following stocks:")
         elif risk_tolerance == "High risk tolerance (i.e., aggressive investor)":
-            stock_options = ["FDN", "SPYD", "XLY", "AMZN", "BABA"]
+            stock_options = ["FDN", "SPYD", "XLY", "AMZN", "BABA"]  # Examples of high-risk stocks (high-dividend, retail)
             st.write("Based on your high risk tolerance, we recommend considering the following stocks:")
-        else:
-            st.warning("Please complete the Risk Tolerance Quiz first to get stock suggestions.")
 
         # Input for stock selection (multiselect)
         selected_stocks = st.multiselect("Select Stocks:", stock_options)
 
-        # Input for investment amount for each selected stock
-        stock_allocations = {}
-        for stock in selected_stocks:
-            allocation = st.number_input(f"Investment amount for {stock}:", min_value=0.0, max_value=investment_amount, step=100.0)
-            stock_allocations[stock] = allocation
-
-        # Check if user has selected stocks and allocated investments
-        if selected_stocks and all(allocation > 0 for allocation in stock_allocations.values()):
+        # Proceed only if stocks are selected
+        if selected_stocks:
+            # Fetch historical data for selected stocks
             try:
-                # Fetch historical adjusted close price data for selected stocks
                 stock_data = yf.download(selected_stocks, start="2023-01-01")['Adj Close']
+                rets = stock_data.pct_change().dropna()  # Calculate daily returns
+                
+                # Calculate optimal portfolio using riskfolio
+                port = rp.Portfolio(returns=rets)
+                port.assets_stats(method_mu='hist', method_cov='hist')  # Historical mean and covariance
+             
+                # Weights in case of minimizing risk
+                min_risk_weights = port.optimization(model='Classic', rm='MV', obj='MinRisk', rf=0, hist=True)
+                st.write("**Optimal Portfolio Weights (Minimizing Risk)**")
+                st.write(min_risk_weights.T)
 
-                # Calculate daily returns (percentage change)
-                returns = stock_data.pct_change().dropna()
-
-                # Optimize portfolio weights (minimize risk)
-                optimal_weights = optimize_portfolio(returns)
-
-                # Calculate portfolio composition (weight allocation)
-                portfolio_composition = {selected_stocks[i]: optimal_weights[i] for i in range(len(selected_stocks))}
-
-                # Display portfolio composition
-                st.write("**Optimal Portfolio Weights (Minimized Risk):**")
-                for stock, weight in portfolio_composition.items():
-                    st.write(f"{stock}: {weight * 100:.2f}%")
-
-                # Display Pie Chart of Portfolio Composition
-                fig, ax = plt.subplots()
-                ax.pie(optimal_weights, labels=selected_stocks, autopct='%1.1f%%', startangle=90)
-                ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+                # Display portfolio composition for minimizing risk
+                fig, ax = plt.subplots(figsize=(10, 8))
+                rp.plot_pie(min_risk_weights, title="Optimal Portfolio Composition (Minimizing Risk)", ax=ax)
                 st.pyplot(fig)
 
-                # Display total value of portfolio based on the user's investment amount
-                portfolio_value = sum(stock_allocations[stock] * portfolio_composition[stock] for stock in selected_stocks)
-                st.write(f"**Total Portfolio Value**: ${portfolio_value:.2f}")
+                # Weights in case of maximizing returns
+                #max_return_weights = port.optimization(model='Classic', rm='MV', obj='MaxRet', rf=0.5, hist=True)
+                #st.write("**Optimal Portfolio Weights (Maximizing Returns)**")
+                #st.write(max_return_weights.T)
+
+                # Display portfolio composition for maximizing returns
+                #fig, ax = plt.subplots(figsize=(10, 8))
+                #rp.plot_pie(max_return_weights, title="Optimal Portfolio Composition (Maximizing Returns)", ax=ax)
+                #st.pyplot(fig)
 
             except Exception as e:
                 st.error(f"Error building portfolio: {e}")
-
-        else:
-            st.warning("Please ensure you have selected stocks and allocated investments.")
-
+    #else:
+        #st.warning("Please complete the Risk Tolerance Quiz first to get stock suggestions.")
 
 
