@@ -264,12 +264,6 @@ if st.session_state.page == "quiz":
         if st.button("Next", on_click=go_to_page_2, key="page_2"):
             pass
 
-
-
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
-### PAGE 2: Company Financial Comparison & Golden/Death Cross Visualization ###
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
-
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 ### PAGE 2: COMPARING STOCKS & GOLDEN/DEATH CROSS ###
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%% #
@@ -302,28 +296,14 @@ if st.session_state.page == "page_2":
             # Dividend Payout Ratio
             dividend_payout_ratio = stock.info.get("payoutRatio", None)
 
-            # Free Cash Flow Ratio
-            operating_cashflow = stock.info.get("operatingCashflow")
-            capital_expenditures = stock.info.get("capitalExpenditures")
-            dividends_paid = stock.info.get("dividendsPaid")
-            if operating_cashflow is None or capital_expenditures is None or dividends_paid is None:
-                free_cash_flow_ratio = "Required data is missing."
-            else:
-                free_cash_flow = operating_cashflow - capital_expenditures
-
-            if free_cash_flow == 0:
-                free_cash_flow_ratio = "Free Cash Flow is zero, cannot calculate payout ratio."
-            else:
-                free_cash_flow_ratio = dividends_paid / free_cash_flow
-
             # Dividend Yield
+            dividends_per_share = stock.info.get('dividendRate', 0)  # Get dividends per share
             dividend_yield = (dividends_per_share / stock.info['previousClose']) * 100
 
             # Beta
-            beta = stock.info['beta']
+            beta = stock.info.get('beta', None)
 
-
-            return {"Debt-to-Equity": debt_to_equity, "Revenue Growth": revenue_growth, "ROE": roe, "Dividend-Payout Ratio": dividend_payout_ratio, "Free Cash Flow Payout Ratio" : free_cash_flow_ratio, "Dividend Yield": dividend_yeild,  "Beta": beta}
+            return {"Debt-to-Equity": debt_to_equity, "Revenue Growth": revenue_growth, "ROE": roe, "Dividend-Payout Ratio": dividend_payout_ratio, "Dividend Yield": dividend_yield,  "Beta": beta}
 
         def evaluate_metrics(symbol):
             stock = yf.Ticker(symbol)
@@ -343,65 +323,72 @@ if st.session_state.page == "page_2":
             # Dividend Payout Ratio
             dividend_payout_ratio = stock.info.get("payoutRatio", None)
 
-            # Free Cash Flow Ratio
-            operating_cashflow = stock.info.get("operatingCashflow")
-            capital_expenditures = stock.info.get("capitalExpenditures")
-            dividends_paid = stock.info.get("dividendsPaid")
-            if operating_cashflow is None or capital_expenditures is None or dividends_paid is None:
-                free_cash_flow_ratio = "Required data is missing."
-            else:
-                free_cash_flow = operating_cashflow - capital_expenditures
-
-            if free_cash_flow == 0:
-                free_cash_flow_ratio = "Free Cash Flow is zero, cannot calculate payout ratio."
-            else:
-                free_cash_flow_ratio = dividends_paid / free_cash_flow
-
             # Dividend Yield
+            dividends_per_share = stock.info.get('dividendRate', 0)  # Get dividends per share
             dividend_yield = (dividends_per_share / stock.info['previousClose']) * 100
 
             # Beta
-            beta = stock.info['beta']
+            beta = stock.info.get('beta', None)
 
             # Evaluate Debt-to-Equity Ratio
-            if debt_to_equity < 1:
-                debt_to_equity_rating = "Low (Good)"
-            elif debt_to_equity < 2:
-                debt_to_equity_rating = "Moderate"
+            if debt_to_equity is not None:
+              try:
+                debt_to_equity = float(debt_to_equity)
+                if debt_to_equity < 1:
+                    debt_to_equity_rating = "Low (Good)"
+                elif debt_to_equity < 2:
+                    debt_to_equity_rating = "Moderate"
+                else:
+                    debt_to_equity_rating = "High (Risky)"
+              except (TypeError, ValueError):
+                debt_to_equity_rating = "N/A"
             else:
-                debt_to_equity_rating = "High (Risky)"
+                debt_to_equity_rating = "N/A"
 
             # Evaluate Revenue Growth
-            if revenue_growth >= 5:
-                revenue_growth_rating = "Consistent Growth"
-            elif revenue_growth > 0:
-                revenue_growth_rating = "Positive but Low Growth"
+            if revenue_growth is not None: 
+              try: 
+                revenue_growth = float(revenue_growth)
+                if revenue_growth >= 5:
+                    revenue_growth_rating = "Consistent Growth"
+                elif revenue_growth > 0:
+                    revenue_growth_rating = "Positive but Low Growth"
+                else:
+                    revenue_growth_rating = "Declining Revenue"
+              except (TypeError, ValueError):
+                revenue_growth_rating = "N/A"
             else:
-                revenue_growth_rating = "Declining Revenue"
+                revenue_growth_rating = "N/A"      
 
             # Evaluate ROE
-            if roe >= 20:
-                roe_rating = "Very High (Excellent)"
-            elif roe >= 15:
-                roe_rating = "High (Good)"
+            if roe is not None:
+              try:
+                roe = float(roe)
+                if roe >= 20:
+                    roe_rating = "Very High (Excellent)"
+                elif roe >= 15:
+                    roe_rating = "High (Good)"
+                else:
+                    roe_rating = "Low"
+              except (TypeError, ValueError):
+                roe_rating = "N/A"
             else:
-                roe_rating = "Low"
+                roe_rating = "N/A"
 
             # Evaluate Payout Ratio
-            if dividend_payout_ratio < 60:
-                dividend_payout_ratio_rating = "Healthy."
-            elif dividend_payout_ratio <= 75:
-                dividend_payout_ratio_rating = "Moderate."
+            if dividend_payout_ratio is not None:
+              try:
+                dividend_payout_ratio = float(dividend_payout_ratio)
+                if dividend_payout_ratio < 60:
+                    dividend_payout_ratio_rating = "Healthy."
+                elif dividend_payout_ratio <= 75:
+                    dividend_payout_ratio_rating = "Moderate."
+                else:
+                    dividend_payout_ratio = "Risky."
+              except (TypeError, ValueError):
+                dividend_payout_ratio_rating = "N/A"
             else:
-                dividend_payout_ratio = "Risky."
-
-            # Evaluate Free Cash Flow Payout Ratio
-            if free_cash_flow_ratio < 50:
-                free_cash_flow_rating = "Very Healthy"
-            elif free_cash_flowt_ratio <= 75:
-                free_cash_flow_rating = "Moderate"
-            else:
-                free_cash_flow_rating = "Risky"
+                dividend_payout_ratio_rating = "N/A"
 
             # Dividend History (Checking last few years)
             dividends = stock.dividends
@@ -411,24 +398,33 @@ if st.session_state.page == "page_2":
                 dividend_payout = "none"
 
             # Evaluate Dividend Yield
-            if dividend_yield < industry_avg_yield:
-                yield_rating = "Low"
-            elif dividend_yield <= industry_avg_yield * 1.5:
-                yield_rating = "Healthy"
-            else:
-                yield_rating = "High (Potential Risk)"
-
             industry_avg_yield = 2.5 # Industry average yield for comparison!!!
+            if dividend_yield is not None:
+              if dividend_yield < industry_avg_yield:
+                  yield_rating = "Low"
+              elif dividend_yield <= industry_avg_yield * 1.5:
+                  yield_rating = "Healthy"
+              else:
+                  yield_rating = "High (Potential Risk)"
+            else:
+                yield_rating = "N/A"
 
             # Evaluate Beta
-            if beta < 0:
-                beta_rating = "This stock has a negative beta, meaning it tends to move inversely to the market. It may provide a hedge against market downturns."
-            elif beta < 1:
-                beta_rating = "This stock has a low beta, meaning it is less volatile than the market. It may be suitable for conservative investors looking for stability."
-            elif beta == 1:
-                beta_rating = "This stock has a beta of 1, meaning it tends to move in line with the market. It has average market risk."
+            if beta is not None:
+              try:
+                beta = float(beta)
+                if beta < 0:
+                    beta_rating = "This stock has a negative beta, meaning it tends to move inversely to the market. It may provide a hedge against market downturns."
+                elif beta < 1:
+                    beta_rating = "This stock has a low beta, meaning it is less volatile than the market. It may be suitable for conservative investors looking for stability."
+                elif beta <= 1.5:
+                    beta_rating = "This stock has a moderate beta, meaning it tends to move in line with the market. It has average market risk."
+                else:
+                    beta_rating = "This stock has a high beta, meaning it is more volatile than the market. It may appeal to aggressive investors willing to take on more risk for potentially higher returns."
+              except (TypeError, ValueError):
+                beta_rating = "N/A"
             else:
-                beta_rating = "This stock has a high beta, meaning it is more volatile than the market. It may appeal to aggressive investors willing to take on more risk for potentially higher returns."
+              beta_rating = "N/A"
 
             return {
                 "Debt-to-Equity": debt_to_equity_rating,
@@ -436,7 +432,6 @@ if st.session_state.page == "page_2":
                 "ROE": roe_rating,
                 "Dividend History": dividend_payout,
                 "Dividend-Payout Ratio": dividend_payout_ratio_rating,
-                "Free Cash Flow Payout Ratio": free_cash_flow_rating,
                 "Dividend Yield": yield_rating,
                 "Beta": beta_rating
                 }
@@ -452,22 +447,34 @@ if st.session_state.page == "page_2":
         with col1:
             st.subheader(f"Metrics for {company1}")
             for metric, value in metrics1.items():
-                st.write(f"**{metric}:** {value:.2f}")
+                if value is not None: 
+                  st.write(f"**{metric}:** {value}")
+                else:
+                  st.write(f"**{metric}:** N/A")
 
         with col1:
             st.subheader(f"Rating for {company1}")
             for metric, value in metrics12.items():
-                st.write(f"**{metric}:** {value}")
+                if value is not None: 
+                  st.write(f"**{metric}:** {value}")
+                else:
+                  st.write(f"**{metric}:** N/A")
 
         with col2:
             st.subheader(f"Metrics for {company2}")
             for metric, value in metrics2.items():
-                st.write(f"**{metric}:** {value:.2f}")
+                if value is not None: 
+                  st.write(f"**{metric}:** {value}")
+                else:
+                  st.write(f"**{metric}:** N/A")
 
         with col2:
             st.subheader(f"Rating for {company2}")
             for metric, value in metrics22.items():
-                st.write(f"**{metric}:** {value}")
+                if value is not None: 
+                  st.write(f"**{metric}:** {value}")
+                else:
+                  st.write(f"**{metric}:** N/A")
 
         # Plot Golden/Death Cross
         def plot_golden_death_cross(symbol):
@@ -507,7 +514,6 @@ if st.session_state.page == "page_2":
 
     if st.button("Next", on_click=go_to_final_page, key="final_page"):
         pass
-
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 ### FINAL PAGE: PORTFOLIO BUILDER ###
