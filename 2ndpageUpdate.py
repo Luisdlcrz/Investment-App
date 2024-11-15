@@ -340,8 +340,8 @@ if st.session_state.page == "page_2":
                 debt_to_equity_rating = "N/A"
 
             # Evaluate Revenue Growth
-            if revenue_growth is not None: 
-              try: 
+            if revenue_growth is not None:
+              try:
                 revenue_growth = float(revenue_growth)
                 if revenue_growth >= 5:
                     revenue_growth_rating = "Consistent Growth"
@@ -352,7 +352,7 @@ if st.session_state.page == "page_2":
               except (TypeError, ValueError):
                 revenue_growth_rating = "N/A"
             else:
-                revenue_growth_rating = "N/A"      
+                revenue_growth_rating = "N/A"
 
             # Evaluate ROE
             if roe is not None:
@@ -441,7 +441,7 @@ if st.session_state.page == "page_2":
         with col1:
             st.subheader(f"Metrics for {company1}")
             for metric, value in metrics1.items():
-                if value is not None: 
+                if value is not None:
                   st.write(f"**{metric}:** {value}")
                 else:
                   st.write(f"**{metric}:** N/A")
@@ -449,7 +449,7 @@ if st.session_state.page == "page_2":
         with col1:
             st.subheader(f"Rating for {company1}")
             for metric, value in metrics12.items():
-                if value is not None: 
+                if value is not None:
                   st.write(f"**{metric}:** {value}")
                 else:
                   st.write(f"**{metric}:** N/A")
@@ -457,7 +457,7 @@ if st.session_state.page == "page_2":
         with col2:
             st.subheader(f"Metrics for {company2}")
             for metric, value in metrics2.items():
-                if value is not None: 
+                if value is not None:
                   st.write(f"**{metric}:** {value}")
                 else:
                   st.write(f"**{metric}:** N/A")
@@ -466,7 +466,7 @@ if st.session_state.page == "page_2":
         with col2:
             st.subheader(f"Rating for {company2}")
             for metric, value in metrics22.items():
-                if value is not None: 
+                if value is not None:
                   st.write(f"**{metric}:** {value}")
                 else:
                   st.write(f"**{metric}:** N/A")
@@ -510,7 +510,6 @@ if st.session_state.page == "page_2":
 
     if st.button("Next", on_click=go_to_final_page, key="final_page"):
         pass
-
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 ### FINAL PAGE: PORTFOLIO BUILDER ###
